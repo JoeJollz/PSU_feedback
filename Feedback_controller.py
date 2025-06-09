@@ -31,10 +31,10 @@ try:
         power = voltage * current
         
         
-        if voltage >0.5:
+        if voltage >0.5: # Safety Barrier - avoids division by small voltages, hence leading to dangerously high currents.
             n_curr = targ_power/voltage
             psu.write(f'CURR CH{CHANNEL},{n_curr:.3f}')
-        else:
+        else: # if voltage is too low, current will be increased, hence becoming dangerous if increased too much. Current restricted to 0A.
             n_curr = 0
             psu.write(f'CURR CH{CHANNEL},0')
         
