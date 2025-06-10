@@ -5,18 +5,12 @@ Created on Mon Jun  9 17:17:58 2025
 @author: jrjol
 """
 
-import pyvisa
 import time
+import serial
 
-# Open TCP/IP socket
-rm = pyvisa.ResourceManager()
-psu = rm.open_resource('TCPIP0::192.168.0.50::9221::SOCKET')  # Adjust IP and port
-
-# Query identification
-print(psu.query('*IDN?'))
+psu = serial.Serial("COM8", baudrate=9600, timeout=1)
 
 targ_power = 50.0 # Watts
-CHANNEL = 1 # CH1
 SLEEP_TIME = 0.5   # Time inbetween updates (seconds)
 
 psu.write(":VOLT 0.1") # set voltage to 0.1V
