@@ -1,4 +1,28 @@
 # -*- coding: utf-8 -*-
+'''
+Attempted LAN connection. Struggled whilst ping IPAddress was successful, and a 
+connected LAN was established, there was a communication blockage between the
+computer and QPX750SP. 
+
+In order to find the QPX IP address and TCP/IP Port, follow these steps. 
+1. power on the QPX
+2. Select Menu -> Interface -> LAN Status -> Next Page.
+3. The IP Address of the QPX is shown, along with the Subnet Mask. 
+4. With this information. Enter into a browser 'http://{IP_Address}'
+5. The following information will be displayed including, TCP/IP Socket Port,
+and full Instrument String Address.
+was a communication blockage
+
+To address this LAN communication issue, various attempts were trialled.
+- Disabling Windows FireWall for Private Ethernet communications.
+- Adding a new rule for Windows FireWall Advanced settings for Inbound communication
+  (this will require your TCP/IP port number). 
+Yet neither resulted in success. Strangely ping {IP address} did show connection was established.
+
+Due to the LAN communication blockage, USB communication was choosen. Via the following steps.
+
+'''
+
 """
 Created on Mon Jun  9 17:17:58 2025
 
