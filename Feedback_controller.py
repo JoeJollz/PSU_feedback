@@ -12,12 +12,12 @@ psu = serial.Serial("COM8", baudrate=9600, timeout=1)
 
 data_log = []
 
-targ_power = 50.0 # Watts
+targ_power = 10.0 # Watts
 SLEEP_TIME = 0.5   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
 
-psu.write(b"VOLT 0.1\n") # set voltage to 0.1V
-psu.write(b"CURR 10\n") # set current limit to 10A
+psu.write(b"VOLT 7\n") # set voltage to 0.1V
+psu.write(b"CURR 1\n") # set current limit to 10A
 psu.write(b"OUTP ON\n") #turn ON the output
 
 start_time = time.time()
@@ -50,7 +50,9 @@ try:
             psu.close()
             print(f'Automatic shut down. Voltage <{volt_mini}V, protected current becoming too large.')
         
-                
+        if curr_i_1>10:
+            psu.write(b"OUTP OFF\n")
+            print(f'Exceeded maximum current of 10A')
         
         time.sleep(SLEEP_TIME)
         
