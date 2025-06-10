@@ -17,10 +17,25 @@ psu.write(":VOLT 0.1") # set voltage to 0.1V
 psu.write(":CURR 10") # set current limit to 10A
 psu.write(":OUTP ON") #turn ON the output
 
+start_time = time.time()
 
 try:
     while True:
-        voltage = float(psu.query(f'MEAS:VOLT? CH{CHANNEL}'))
+        psu.write(b"MEAS:VOLT?\n")
+        volt_i = float(psu.readline().decode().strip())
+        
+        psu.write(b"MEAS:CURR?\n")
+        curr_i = float(psu.readline().decode().strip())
+        
+        elapsed_time = round(time.time() - start_time,2)
+        
+        data_log.append(f"{elapsed_time},{volt_i},{curr_i}")
+        
+        print(f"Time: {elapsed_time}s | Voltage: {volt_i}V | Current: {curr_i}A")
+        print('----------------------------------------------------------------')
+        
+        time.sleep(1)
+        
         current = float(psu.query(f'MEAS:CURR? CH{CHANNEL}'))
         power = voltage * current
         
@@ -32,13 +47,13 @@ try:
             n_curr = 0
             psu.write(f'CURR CH{CHANNEL},0')
         
-        
-        print(f"V{voltage:.2f}V, I={current:.2f}A, P={power:.2f}W -> curr_new={n_curr:.3f}A")
-        print('')
-        
+                
         
         time.sleep(SLEEP_TIME)
         
 except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
+
+    psu.write(b"OUTP OFF\n")
+    print('Stopped logging data. 0A. 0V')
     psu.write(f'OUTP CH{CHANNEL},OFF')
     print("Stopped by user")
