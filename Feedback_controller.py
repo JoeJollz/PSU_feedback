@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Attempted LAN connection. Struggled whilst ping IPAddress was successful, and a 
+Attempted LAN connection. Struggled, yet ping IPAddress was successful, and a 
 connected LAN was established, there was a communication blockage between the
 computer and QPX750SP. 
 
@@ -42,7 +42,7 @@ curr_log = []
 power_log = []
 
 
-targ_power = 7.0 # Watts
+targ_power = 10.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
 MAX_CURRENT = 15# safety limit in A
@@ -88,13 +88,14 @@ try:
         
         elapsed_time = round(time.time() - start_time,2)
         
-        data_log.append(f"{elapsed_time},{volt_i},{curr_i}")
+       
         time_log.append(elapsed_time)
         curr_log.append(curr_i)
         volt_log.append(volt_i)
         power_log.append(volt_i*curr_i)
         
-        p = curr_i*volt_i
+        p = curr_i*volt_i 
+        data_log.append(f"{elapsed_time},{volt_i},{curr_i},{p}")
         print(f"Time: {elapsed_time}s | Voltage: {volt_i}V | Current: {curr_i}A")
         print(f"Power: {p}W")
         print('----------------------------------------------------------------')
@@ -113,7 +114,7 @@ try:
             print(f'Automatic shut down. Voltage <{volt_mini}V, protected current becoming too large.')
             plotting()
         
-        if curr_i>MAX_CURRENT:
+        if curr_i>MAX_CURRENT: # if current exceeds the maximum safety operating current - close off. 
             psu.write(b"OUTP OFF\n")
             print(f'Exceeded maximum current of {MAX_CURRENT}A')
             plotting()
@@ -131,3 +132,9 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     plotting()
     
     
+file_path = r""
+
+with open(file_path, 'w') as f:
+    for item in data_log:
+        f.write(str(item) + '\n')
+
