@@ -42,13 +42,13 @@ curr_log = []
 power_log = []
 
 
-targ_power = 10.0 # Watts
+targ_power = 20.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
-MAX_CURRENT = 15# safety limit in A
+MAX_CURRENT = 20# safety limit in A
 
 psu.write(b"VOLT 7\n") # set voltage to 0.1V
-psu.write(b"CURR 1\n") # set current limit to 10A
+psu.write(b"CURR 4\n") # set current limit to 10A
 psu.write(b"OUTP ON\n") #turn ON the output
 time.sleep(2) # 2seconds to allow for cuurent and voltage to be reached. 
 start_time = time.time()
@@ -68,11 +68,11 @@ def plotting():
     ax2.tick_params(axis="y", labelcolor="r")
     
     # Show plot
-    plt.title("Voltage and Current Over Time")
+    plt.title(f"IV vs Time -  {targ_power}W")
     plt.show()
     
     plt.plot(time_log, power_log)
-    plt.title('Power vs Time')
+    plt.title(f'Power vs Time {targ_power}W')
     plt.xlabel('Time (s)')
     plt.ylabel('Power (W)')
     plt.show()
