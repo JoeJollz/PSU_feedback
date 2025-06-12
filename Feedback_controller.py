@@ -43,14 +43,40 @@ power_log = []
 
 
 targ_power = 7.0 # Watts
-SLEEP_TIME = 0.5   # Time inbetween updates (seconds)
+SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
+MAX_CURRENT = 15# safety limit in A
 
 psu.write(b"VOLT 7\n") # set voltage to 0.1V
 psu.write(b"CURR 1\n") # set current limit to 10A
 psu.write(b"OUTP ON\n") #turn ON the output
 time.sleep(2) # 2seconds to allow for cuurent and voltage to be reached. 
 start_time = time.time()
+
+def plotting():
+    fig, ax1 = plt.subplots()
+    # Plot voltage on the primary y-axis
+    ax1.plot(time_log, volt_log, 'b-', label="Voltage (V)")
+    ax1.set_xlabel("Time (s)")
+    ax1.set_ylabel("Voltage (V)", color="b")
+    ax1.tick_params(axis="y", labelcolor="b")
+    
+    # Create secondary y-axis for current
+    ax2 = ax1.twinx()
+    ax2.plot(time_log, curr_log, 'r-', label="Current (A)")
+    ax2.set_ylabel("Current (A)", color="r")
+    ax2.tick_params(axis="y", labelcolor="r")
+    
+    # Show plot
+    plt.title("Voltage and Current Over Time")
+    plt.show()
+    
+    plt.plot(time_log, power_log)
+    plt.title('Power vs Time')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Power (W)')
+    plt.show()
+    
 
 try:
     while True:
@@ -85,10 +111,12 @@ try:
             psu.write(b"OUTP OFF\n")
             psu.close()
             print(f'Automatic shut down. Voltage <{volt_mini}V, protected current becoming too large.')
+            plotting()
         
-        if curr_i>10:
+        if curr_i>MAX_CURRENT:
             psu.write(b"OUTP OFF\n")
-            print(f'Exceeded maximum current of 10A')
+            print(f'Exceeded maximum current of {MAX_CURRENT}A')
+            plotting()
         
         time.sleep(SLEEP_TIME)
         
@@ -100,27 +128,6 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     psu.close()
     
     
-    fig, ax1 = plt.subplots()
-    # Plot voltage on the primary y-axis
-    ax1.plot(time_log, volt_log, 'b-', label="Voltage (V)")
-    ax1.set_xlabel("Time (s)")
-    ax1.set_ylabel("Voltage (V)", color="b")
-    ax1.tick_params(axis="y", labelcolor="b")
-    
-    # Create secondary y-axis for current
-    ax2 = ax1.twinx()
-    ax2.plot(time_log, curr_log, 'r-', label="Current (A)")
-    ax2.set_ylabel("Current (A)", color="r")
-    ax2.tick_params(axis="y", labelcolor="r")
-    
-    # Show plot
-    plt.title("Voltage and Current Over Time")
-    plt.show()
-    
-    plt.plot(time_log, power_log)
-    plt.title('Power vs Time')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Power (W)')
-    plt.show()
+    plotting()
     
     
