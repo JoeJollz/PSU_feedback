@@ -41,8 +41,7 @@ volt_log = []
 curr_log = []
 power_log = []
 
-
-targ_power = 20.0 # Watts
+targ_power = 14.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
 MAX_CURRENT = 20# safety limit in A
@@ -130,7 +129,6 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     
     
     plotting()
-    
     
 file_path = r""
 
