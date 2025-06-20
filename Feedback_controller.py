@@ -17,7 +17,7 @@ To address this LAN communication issue, various attempts were trialled.
 - Disabling Windows FireWall for Private Ethernet communications.
 - Adding a new rule for Windows FireWall Advanced settings for Inbound communication
   (this will require your TCP/IP port number). 
-Yet neither resulted in success. Strangely ping {IP address} did show connection was established.
+Yet neither resulted in success. Strangely ping {IP address} did show that connection was established.
 
 Due to the LAN communication blockage, USB communication was choosen. Via the following steps.
 
@@ -41,13 +41,13 @@ volt_log = []
 curr_log = []
 power_log = []
 
-targ_power = 14.0 # Watts
+targ_power = 8.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
 volt_mini = 0.5 # V
 MAX_CURRENT = 20# safety limit in A
 
-psu.write(b"VOLT 7\n") # set voltage to 0.1V
-psu.write(b"CURR 4\n") # set current limit to 10A
+psu.write(b"VOLT 15\n") # set voltage to 0.1V
+psu.write(b"CURR 7\n") # set current limit to 10A
 psu.write(b"OUTP ON\n") #turn ON the output
 time.sleep(2) # 2seconds to allow for cuurent and voltage to be reached. 
 start_time = time.time()
@@ -117,6 +117,11 @@ try:
             psu.write(b"OUTP OFF\n")
             print(f'Exceeded maximum current of {MAX_CURRENT}A')
             plotting()
+        if elapsed_time>600:
+            psu.write(b"OUTP OFF\n")
+            psu.close()
+            plotting()
+            
         
         time.sleep(SLEEP_TIME)
         
@@ -130,9 +135,9 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     
     plotting()
     
-file_path = r""
+# file_path = r""
 
-with open(file_path, 'w') as f:
-    for item in data_log:
-        f.write(str(item) + '\n')
+# with open(file_path, 'w') as f:
+#     for item in data_log:
+#         f.write(str(item) + '\n')
 
