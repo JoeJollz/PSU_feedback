@@ -40,66 +40,6 @@ def measure():
     psu.write(b"MEAS:CURR?\n")
     curr_i = float(psu.readline().decode().strip())
     return volt_i, curr_i
-    
-file_path = 'Power_gen_profiles/Wind_25062025.txt'
-
-with open(file_path, 'r') as f:
-    WPP = [float(line.strip()) for line in f if line.strip()] # WPP = Wind Power Profile
-
-
-psu = serial.Serial("COM8", baudrate=9600, timeout=1)
-
-data_log = []
-time_log = []
-volt_log = []
-curr_log = []
-power_log = []
-
-
-start_time = time.time()
-last_trigger = start_time 
-
-i = 0 
-SLEEP_TIME = 0.2
-targ_power = WPP[i]
-
-power_on(V, I, P)
-v_i, c_i = measure()
-power_update(targ_power, v_i, c_i)
-
-while True:
-    current_time = time.time()
-    
-    if current_time - last_trigger >= 300:
-        print('300s passed. Resetting')
-        last_trigger = current_time
-        i += 1
-        targ_power = WPP[i]
-    
-    
-    v_i, c_i = measure()
-    c_i_1 = power_update(targ_power, v_i, c_i)
-    elapsed_time = round(time.time()-start_time,2)
-    p = v_i * c_i_1
-    data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
-    
-    print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
-    print(f"Power: {p}W")
-    print('----------------------------------------------------------------')
-    
-    time.sleep(SLEEP_TIME)
-    
-
-targ_power = 9.0 # Watts
-SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
-volt_mini = 0.5 # V
-MAX_CURRENT = 20# safety limit in A
-
-psu.write(b"VOLT 15\n") # set voltage to 0.1V
-psu.write(b"CURR 7\n") # set current limit to 10A
-psu.write(b"OUTP ON\n") #turn ON the output
-time.sleep(2) # 2seconds to allow for cuurent and voltage to be reached. 
-start_time = time.time()
 
 def plotting():
     fig, ax1 = plt.subplots()
@@ -124,6 +64,82 @@ def plotting():
     plt.xlabel('Time (s)')
     plt.ylabel('Power (W)')
     plt.show()
+    
+file_path = 'Power_gen_profiles/Wind_25062025.txt'
+
+with open(file_path, 'r') as f:
+    WPP = [float(line.strip()) for line in f if line.strip()] # WPP = Wind Power Profile
+
+
+psu = serial.Serial("COM8", baudrate=9600, timeout=1)
+
+data_log = []
+time_log = []
+volt_log = []
+curr_log = []
+power_log = []
+
+
+start_time = time.time()
+last_trigger = start_time 
+
+i = 0 
+SLEEP_TIME = 0.2
+targ_power = WPP[i]
+v_min = 0.5 # minium safe working voltage, otherwise I will be too high. 
+Cmax = 20 # A. Maxim safe working current. 
+
+power_on(V, I, P)
+v_i, c_i = measure()
+power_update(targ_power, v_i, c_i)
+
+while True:
+    current_time = time.time()
+    
+    if current_time - last_trigger >= 300:
+        print('300s passed. Resetting')
+        last_trigger = current_time
+        i += 1
+        targ_power = WPP[i]
+    
+    
+    v_i, c_i = measure()
+    if v_i > v_min:
+        c_i_1 = power_update(targ_power, v_i, c_i)
+        
+        
+    else: # projection from small voltages with high power - hence high current. Shut down.
+        power_off()
+        print(f"Power OFF - minimum working voltage exceeded. V_i={v_i}V<Vmin={v_min}V")
+        plotting()
+    
+    if c_i > Cmax or c_i_1 > Cmax: # current exceeds current max limit. Shut down.
+        power_off()
+        print("Power OFF - maximum current exceeded.")
+        plotting()
+        
+    elapsed_time = round(time.time()-start_time,2)
+    p = v_i * c_i_1
+    data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
+    
+    print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
+    print(f"Power: {p}W")
+    print('----------------------------------------------------------------')
+    
+    time.sleep(SLEEP_TIME)
+    
+
+targ_power = 9.0 # Watts
+SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
+volt_mini = 0.5 # V
+MAX_CURRENT = 20# safety limit in A
+
+psu.write(b"VOLT 15\n") # set voltage to 0.1V
+psu.write(b"CURR 7\n") # set current limit to 10A
+psu.write(b"OUTP ON\n") #turn ON the output
+time.sleep(2) # 2seconds to allow for cuurent and voltage to be reached. 
+start_time = time.time()
+
     
 try:
     while True:
