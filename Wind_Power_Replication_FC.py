@@ -3,6 +3,10 @@
 This programme delievers a power profile that matches that of Wind generation 
 from the UK. 
 
+The time series data set shows every 5 minutes the new wind profile. 
+Therefore to update the power profile, a loop which extracts the next power value
+will be utilised, where a 300 second (5 minute) time.sleep function is added. 
+
 @author: jrjol
 """
 
