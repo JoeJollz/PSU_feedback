@@ -13,7 +13,13 @@ will be utilised, where a 300 second (5 minute) time.sleep function is added.
 import time
 import serial
 import matplotlib.pyplot as plt
- 
+
+file_path = 'Power_gen_profiles/Wind_25062025.txt'
+
+with open(file_path, 'r') as f:
+    WPP = [float(line.strip()) for line in f if line.strip()] # WPP = Wind Power Profile
+
+
 psu = serial.Serial("COM8", baudrate=9600, timeout=1)
 
 data_log = []
