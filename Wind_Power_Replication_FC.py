@@ -14,6 +14,35 @@ import time
 import serial
 import matplotlib.pyplot as plt
 
+
+def power_on(V, I, P):
+    psu.write(b"VOLT 15\n") # set voltage to 0.1V
+    psu.write(b"CURR 7\n") # set current limit to 10A
+    psu.write(b"OUTP ON\n") #turn ON the output
+    
+    
+def power_update(P, volt_i, curr_i):
+    curr_i_1 = targ_power/volt_i
+    command = f"CURR {curr_i_1}\n".encode()
+    psu.write(command)
+    print("Sent new current")
+
+def power_off():
+    psu.write(b"CURR 0\n")
+    psu.write(b"VOLT 0\n")
+    psu.write(b"OUTP OFF\n")
+    psu.close()
+    
+def measure():
+    psu.write(b"MEAS:VOLT?\n")
+    volt_i = float(psu.readline().decode().strip())
+    
+    psu.write(b"MEAS:CURR?\n")
+    curr_i = float(psu.readline().decode().strip())
+    return volt_i, curr_i
+    
+    
+
 file_path = 'Power_gen_profiles/Wind_25062025.txt'
 
 with open(file_path, 'r') as f:
@@ -27,6 +56,34 @@ time_log = []
 volt_log = []
 curr_log = []
 power_log = []
+
+
+start_time = time.time()
+last_trigger = start_time 
+
+i = 0 
+SLEEP_TIME = 0.2
+targ_power = WPP[i]
+
+power_on(V, I, P)
+v_i, c_i = measure()
+power_update(targ_power, v_i, c_i)
+
+while True:
+    current_time = time.time()
+    
+    if current_time - last_trigger >= 300:
+        print('300s passed. Resetting')
+        last_trigger = current_time
+        i += 1
+        targ_power = WPP[i]
+    
+    v_i, c_i = measure()
+    power_update(targ_power, v_i, c_i)
+    time.sleep(SLEEP_TIME)
+        
+    
+
 
 targ_power = 9.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
