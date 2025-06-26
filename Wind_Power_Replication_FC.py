@@ -20,12 +20,12 @@ def power_on(V, I, P):
     psu.write(b"CURR 7\n") # set current limit to 10A
     psu.write(b"OUTP ON\n") #turn ON the output
     
-    
 def power_update(P, volt_i, curr_i):
     curr_i_1 = targ_power/volt_i
     command = f"CURR {curr_i_1}\n".encode()
     psu.write(command)
     print("Sent new current")
+    return curr_i_1
 
 def power_off():
     psu.write(b"CURR 0\n")
@@ -41,8 +41,6 @@ def measure():
     curr_i = float(psu.readline().decode().strip())
     return volt_i, curr_i
     
-    
-
 file_path = 'Power_gen_profiles/Wind_25062025.txt'
 
 with open(file_path, 'r') as f:
@@ -78,12 +76,19 @@ while True:
         i += 1
         targ_power = WPP[i]
     
-    v_i, c_i = measure()
-    power_update(targ_power, v_i, c_i)
-    time.sleep(SLEEP_TIME)
-        
     
-
+    v_i, c_i = measure()
+    c_i_1 = power_update(targ_power, v_i, c_i)
+    elapsed_time = round(time.time()-start_time,2)
+    p = v_i * c_i_1
+    data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
+    
+    print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
+    print(f"Power: {p}W")
+    print('----------------------------------------------------------------')
+    
+    time.sleep(SLEEP_TIME)
+    
 
 targ_power = 9.0 # Watts
 SLEEP_TIME = 0.2   # Time inbetween updates (seconds)
@@ -120,7 +125,6 @@ def plotting():
     plt.ylabel('Power (W)')
     plt.show()
     
-
 try:
     while True:
         psu.write(b"MEAS:VOLT?\n")
@@ -166,7 +170,6 @@ try:
             psu.close()
             plotting()
             
-        
         time.sleep(SLEEP_TIME)
         
 except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
@@ -175,7 +178,6 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     print('Stopped logging data. 0A. 0V')
     print("Stopped by user")
     psu.close()
-    
     
     plotting()
     
