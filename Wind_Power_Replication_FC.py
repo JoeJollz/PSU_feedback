@@ -94,7 +94,7 @@ v_min = 0.1 # minium safe working voltage, otherwise I will be too high.
 Cmax = 20 # A. Maxim safe working current. 
 
 #setting some limis for V and I.
-power_on(15, 7)
+power_on(4, 7)
 v_i, c_i = measure()
 power_update(targ_power, v_i, c_i)
 
@@ -103,11 +103,10 @@ try:
     while True:
         current_time = time.time()
         
-        if current_time - last_trigger >= 20:
-            print('300s passed. Resetting')
+        if current_time - last_trigger >= 8:
+            print('8s passed. Resetting')
             last_trigger = current_time
             i += 1
-            targ_power = WPP[i]
             
             if i == len(WPP):
                 print("All power targets processed. Exiting loop.")
@@ -115,8 +114,9 @@ try:
                 plotting()
                 
                 break
-        
-        
+            
+            targ_power = WPP[i]
+            
         v_i, c_i = measure()
         if v_i > v_min: # voltage is sufficiently high - continue updating current.
             c_i_1 = power_update(targ_power, v_i, c_i)
