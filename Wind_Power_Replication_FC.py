@@ -15,10 +15,13 @@ import serial
 import matplotlib.pyplot as plt
 
 
-def power_on(V, I, P):
-    psu.write(b"VOLT 15\n") # set voltage to 0.1V
-    psu.write(b"CURR 7\n") # set current limit to 10A
+def power_on(V, I):
+    #psu.write(b"VOLT 15\n") # set voltage to 0.1V
+    #psu.write(b"CURR 7\n") # set current limit to 10A
+    psu.write(f"VOLT {V}\n".encode())
+    psu.write(f"CURR {I}\n".encode())
     psu.write(b"OUTP ON\n") #turn ON the output
+    time.sleep(0.2)
     
 def power_update(P, volt_i, curr_i):
     curr_i_1 = targ_power/volt_i
@@ -69,6 +72,7 @@ file_path = 'Power_gen_profiles/Wind_25062025.txt'
 
 with open(file_path, 'r') as f:
     WPP = [float(line.strip()) for line in f if line.strip()] # WPP = Wind Power Profile
+WPP = WPP[1:] # ingnoring the first WPP[0] = 0W. Specific to the power gen profile .txt file. 
 
 
 psu = serial.Serial("COM8", baudrate=9600, timeout=1)
@@ -89,44 +93,57 @@ targ_power = WPP[i]
 v_min = 0.5 # minium safe working voltage, otherwise I will be too high. 
 Cmax = 20 # A. Maxim safe working current. 
 
-power_on(V, I, P)
+#setting some limis for V and I.
+power_on(15, 7)
 v_i, c_i = measure()
 power_update(targ_power, v_i, c_i)
 
-while True:
-    current_time = time.time()
-    
-    if current_time - last_trigger >= 300:
-        print('300s passed. Resetting')
-        last_trigger = current_time
-        i += 1
-        targ_power = WPP[i]
-    
-    
-    v_i, c_i = measure()
-    if v_i > v_min:
-        c_i_1 = power_update(targ_power, v_i, c_i)
+
+try:
+    while True:
+        current_time = time.time()
+        
+        if current_time - last_trigger >= 300:
+            print('300s passed. Resetting')
+            last_trigger = current_time
+            i += 1
+            targ_power = WPP[i]
         
         
-    else: # projection from small voltages with high power - hence high current. Shut down.
-        power_off()
-        print(f"Power OFF - minimum working voltage exceeded. V_i={v_i}V<Vmin={v_min}V")
-        plotting()
-    
-    if c_i > Cmax or c_i_1 > Cmax: # current exceeds current max limit. Shut down.
-        power_off()
-        print("Power OFF - maximum current exceeded.")
-        plotting()
+        v_i, c_i = measure()
+        if v_i > v_min: # projection from small voltages with high power - hence high current. Shut down.
+            c_i_1 = power_update(targ_power, v_i, c_i)
         
-    elapsed_time = round(time.time()-start_time,2)
-    p = v_i * c_i_1
-    data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
-    
-    print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
-    print(f"Power: {p}W")
-    print('----------------------------------------------------------------')
-    
-    time.sleep(SLEEP_TIME)
+        else: # projection from small voltages with high power - hence high current. Shut down.
+            power_off()
+            print(f"Power OFF - minimum working voltage exceeded. V_i={v_i}V<Vmin={v_min}V")
+            plotting()
+            
+            
+        
+        if c_i > Cmax or c_i_1 > Cmax: # current exceeds current max limit. Shut down.
+            power_off()
+            print("Power OFF - maximum current exceeded.")
+            plotting()
+            
+        elapsed_time = round(time.time()-start_time,2)
+        p = v_i * c_i_1
+        data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
+        time_log.append(elapsed_time)
+        curr_log.append(c_i_1)
+        volt_log.append(v_i)
+        power_log.append(p)
+        
+        
+        print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
+        print(f"Power: {p}W")
+        print('----------------------------------------------------------------')
+        
+        time.sleep(SLEEP_TIME)
+        
+except KeyboardInterrupt:
+    power_off()
+    plotting()
     
 
 targ_power = 9.0 # Watts
