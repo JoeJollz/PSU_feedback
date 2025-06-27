@@ -59,11 +59,11 @@ def plotting():
     ax2.tick_params(axis="y", labelcolor="r")
     
     # Show plot
-    plt.title(f"IV vs Time -  {targ_power}W")
+    plt.title(f"IV vs Time")
     plt.show()
     
     plt.plot(time_log, power_log)
-    plt.title(f'Power vs Time {targ_power}W')
+    plt.title(f'Power vs Time')
     plt.xlabel('Time (s)')
     plt.ylabel('Power (W)')
     plt.show()
@@ -88,9 +88,9 @@ start_time = time.time()
 last_trigger = start_time 
 
 i = 0 
-SLEEP_TIME = 0.2
+SLEEP_TIME = 0.1
 targ_power = WPP[i]
-v_min = 0.5 # minium safe working voltage, otherwise I will be too high. 
+v_min = 0.1 # minium safe working voltage, otherwise I will be too high. 
 Cmax = 20 # A. Maxim safe working current. 
 
 #setting some limis for V and I.
@@ -103,11 +103,18 @@ try:
     while True:
         current_time = time.time()
         
-        if current_time - last_trigger >= 300:
+        if current_time - last_trigger >= 20:
             print('300s passed. Resetting')
             last_trigger = current_time
             i += 1
             targ_power = WPP[i]
+            
+            if i == len(WPP):
+                print("All power targets processed. Exiting loop.")
+                power_off()
+                plotting()
+                
+                break
         
         
         v_i, c_i = measure()
@@ -140,6 +147,8 @@ try:
         print('----------------------------------------------------------------')
         
         time.sleep(SLEEP_TIME)
+        
+        
         
 except KeyboardInterrupt:
     power_off()
