@@ -159,6 +159,11 @@ try:
             last_time_point = time.time()
             log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
             time.sleep(update_time)
+        
+        elif P_OFF == 1 and cycle_duration<cycle_off_duration:
+            # currently in the OFF cycle.
+            log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
+            time.sleep(update_time)
             
         if cyc_counter == numb_cycles: # total number of cycles have been reached. Close down sequence initiated. 
             print('Total number of power cycles complete. Power down.')
