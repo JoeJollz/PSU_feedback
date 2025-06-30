@@ -7,6 +7,9 @@ The time series data set shows every 5 minutes the new wind profile.
 Therefore to update the power profile, a loop which extracts the next power value
 will be utilised, where a 300 second (5 minute) time.sleep function is added. 
 
+To do- Add section which handels COM disconntection. 
+        Edge case test, when the .txt wind power gen profiles runs out of data points - turn off sequence and data saving needs to be error free.
+
 @author: jrjol
 """
 
@@ -161,3 +164,4 @@ except KeyboardInterrupt:
 #     for item in data_log:
 #         f.write(str(item) + '\n')
 
+ 
