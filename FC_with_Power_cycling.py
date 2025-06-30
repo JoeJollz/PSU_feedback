@@ -51,6 +51,17 @@ def measure():
     curr_i = float(psu.readline().decode().strip())
     return volt_i, curr_i
 
+def log(data_log, time_log, volt_log, curr_log, power_log, v_i, c_i_1):
+    global start_time
+    
+    elap_t = round(time.time()-start_time,2)
+    p = v_i * c_i_1
+    data_log.append(f'{elap_t},{v_i},{c_i_1},{p}')
+    time_log.append(elap_t)
+    volt_log.append(v_i)
+    curr_log.append(c_i_1)
+    power_log.append(p)
+
 def plotting():
     fig, ax1 = plt.subplots()
     # Plot voltage on the primary y-axis
@@ -94,6 +105,13 @@ c_max = 20 # A safety maximum current
 
 power_on(4,7)
 
+
+data_log = []
+time_log = []
+volt_log = []
+curr_log = []
+power_log = []
+
 try:
     while True:
         current_time = time.time()
@@ -115,23 +133,32 @@ try:
                 print(f'Current has exceeded the maximum current and hence shut\
                        down.')
                 plotting()
+            
+            log(data_log, time_log, volt_log, curr_log, power_log, v_i, c_i_1)
+            time.sleep(update_time)
+            
                 
             
         
-        if P_ON ==1 and cycle_duration>cycle_on_duration:
+        elif P_ON ==1 and cycle_duration>cycle_on_duration:
             # it is ON and needs to switch to OFF.
+            
             
             P_ON = 0
             P_OFF = 1
             last_time_point = time.time()
+            log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
+            time.sleep(update_time)
             
-        if P_OFF == 1 and cycle_duration>cycle_off_duration:
+        elif P_OFF == 1 and cycle_duration>cycle_off_duration:
             # it is OFF and needs to swtich ONN
             
             P_ON = 1
             P_OFF = 0
             cyc_counter +=1
             last_time_point = time.time()
+            log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
+            time.sleep(update_time)
             
         if cyc_counter == numb_cycles: # total number of cycles have been reached. Close down sequence initiated. 
             print('Total number of power cycles complete. Power down.')
