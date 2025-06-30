@@ -5,6 +5,11 @@ ON and OFF will be completed, for several hundred cycles.
 
 e.g. cycle 8W on for 5 minutes, then 0W for 5 minutes, repeat x 1000.
 
+TO CHECK: Once powered down, is the PSU still able to take measurements?
+If yes great, if no, implement a conditional checker for P ON or OFF, if OFF 
+do not write measurement, simply set V_t=0V and I_t=0V. If ON, then write to PSU
+and store the live V_t and I_t values. 
+
 
 
 Created on Mon Jun 30 13:21:17 2025
@@ -82,11 +87,36 @@ cycle_on_duration = 5*60 # 5 minutes power down.
 cycle_off_duration = 5*60 # 5minutes power off
 numb_cycles = 500 # number of cycles.
 cyc_counter = 1
+update_time = 0.2
+targ_power = # target power for each of the cylcles (W).
+v_min = # minimum working voltage.
+c_max = 20 # A safety maximum current 
+
+power_on(4,7)
 
 try:
     while True:
         current_time = time.time()
         cycle_duration = current_time-last_time_point
+        
+        if P_ON == 1 and cycle_duration<cycle_on_duration:
+            v_i, c_i = measure()
+            
+            if v_i > v_min: # voltage is suitably high, hence the current 
+                c_i_1 = power_update(P, v_i, c_i)
+            else: # voltage is too low, hence stopping the current reaching too high. 
+                power_off()
+                print(f'Voltage exceeded the minimum working voltage: {v_min}V, \
+                      stopping current at c_i+1 becoming dangerous high.')
+                plotting()
+
+            if c_i >c_max or c_i_1 > c_max:
+                power_off()
+                print(f'Current has exceeded the maximum current and hence shut\
+                       down.')
+                plotting()
+                
+            
         
         if P_ON ==1 and cycle_duration>cycle_on_duration:
             # it is ON and needs to switch to OFF.
