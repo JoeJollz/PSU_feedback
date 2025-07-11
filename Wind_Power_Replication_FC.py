@@ -71,12 +71,12 @@ def plotting():
     plt.ylabel('Power (W)')
     plt.show()
     
-file_path = 'Power_gen_profiles/Wind_25062025.txt'
+file_path = 'Power_gen_profiles/Wind_1.txt'
 
 with open(file_path, 'r') as f:
     WPP = [float(line.strip()) for line in f if line.strip()] # WPP = Wind Power Profile
 WPP = WPP[1:] # ingnoring the first WPP[0] = 0W. Specific to the power gen profile .txt file. 
-
+tot_data_points=len(WPP)
 
 psu = serial.Serial("COM8", baudrate=9600, timeout=1)
 
@@ -97,7 +97,7 @@ v_min = 0.1 # minium safe working voltage, otherwise I will be too high.
 Cmax = 20 # A. Maxim safe working current. 
 
 #setting some limis for V and I.
-power_on(4, 7)
+power_on(10, 7)
 v_i, c_i = measure()
 power_update(targ_power, v_i, c_i)
 
@@ -106,10 +106,11 @@ try:
     while True:
         current_time = time.time()
         
-        if current_time - last_trigger >= 8:
+        if current_time - last_trigger >= 60:
             print('8s passed. Resetting')
             last_trigger = current_time
             i += 1
+            print('Minutes Left: ', tot_data_points-i)
             
             if i == len(WPP):
                 print("All power targets processed. Exiting loop.")
@@ -137,16 +138,17 @@ try:
             plotting()
             
         elapsed_time = round(time.time()-start_time,2)
-        p = v_i * c_i_1
-        data_log.append(f"{elapsed_time},{v_i},{c_i_1},{p}")
+        p = v_i * c_i
+        data_log.append(f"{elapsed_time},{v_i},{c_i},{p}")
         time_log.append(elapsed_time)
         curr_log.append(c_i_1)
         volt_log.append(v_i)
         power_log.append(p)
         
         
-        print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i_1}A")
+        print(f"Time: {elapsed_time}s | Voltage: {v_i}V | Current: {c_i}A")
         print(f"Power: {p}W")
+        print("Minutes remaining: ", tot_data_points - i)
         print('----------------------------------------------------------------')
         
         time.sleep(SLEEP_TIME)
@@ -158,10 +160,6 @@ except KeyboardInterrupt:
     plotting()
     
 
-# file_path = r"C:\Users\jrjol\OneDrive - University of Cambridge\Documents\Cambridge PhD\Methanol Reforming Paper\GC data\NiALD_20Ce_C\data_log_14W.txt"
 
-# with open(file_path, 'w') as f:
-#     for item in data_log:
-#         f.write(str(item) + '\n')
 
  
