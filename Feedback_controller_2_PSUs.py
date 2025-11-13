@@ -69,6 +69,23 @@ class PSU:
     def close(self):
         self.output(False)
         self.serial.close()
+        
+def plotting(psu_list):
+    for psu in psu_list:
+        plt.figure()
+        plt.plot(psu.time_log, psu.volt_log, label="Voltage (V)")
+        plt.plot(psu.time_log, psu.curr_log, label="Current (A)")
+        plt.title(f"{psu.name} - Voltage/Current vs Time")
+        plt.xlabel("Time (s)")
+        plt.legend()
+        plt.show()
+    
+        plt.figure()
+        plt.plot(psu.time_log, psu.power_log)
+        plt.title(f"{psu.name} - Power vs Time")
+        plt.xlabel("Time (s)")
+        plt.ylabel("Power (W)")
+        plt.show()
 
 
 def main():
