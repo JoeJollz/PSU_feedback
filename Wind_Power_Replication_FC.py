@@ -160,6 +160,10 @@ except KeyboardInterrupt:
     plotting()
     
 
+file_path = r"C:\Users\jrjol\OneDrive - University of Cambridge\Documents\Cambridge PhD\Methanol Reforming Paper\IV data\Wind replication 2 days\.txt"
 
+with open(file_path, 'w') as f:
+    for item in data_log:
+        f.write(str(item) + '\n')
 
  

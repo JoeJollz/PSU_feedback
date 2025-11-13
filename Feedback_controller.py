@@ -32,7 +32,7 @@ Created on Mon Jun  9 17:17:58 2025
 import time
 import serial
 import matplotlib.pyplot as plt
-
+ 
 psu = serial.Serial("COM8", baudrate=9600, timeout=1)
 
 data_log = []
@@ -117,7 +117,7 @@ try:
             psu.write(b"OUTP OFF\n")
             print(f'Exceeded maximum current of {MAX_CURRENT}A')
             plotting()
-        if elapsed_time>600:
+        if elapsed_time>360:
             psu.write(b"OUTP OFF\n")
             psu.close()
             plotting()
@@ -135,7 +135,7 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl C
     
     plotting()
     
-# file_path = r""
+# file_path = r"C:\Users\jrjol\OneDrive - University of Cambridge\Documents\Cambridge PhD\Methanol Reforming Paper\GC data\NiALD_20Ce_C\data_log_14W.txt"
 
 # with open(file_path, 'w') as f:
 #     for item in data_log:
