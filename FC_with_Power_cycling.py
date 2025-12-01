@@ -34,7 +34,7 @@ def current_update(targ_power, volt_i, curr_i):
     curr_i_1 = targ_power/volt_i
     command = f"CURR {curr_i_1}\n".encode()
     psu.write(command)
-    print("Sent new current")
+    print("Sent new current: ", curr_i_1, 'A')
     return curr_i_1
 
 def power_off():
@@ -135,7 +135,7 @@ try:
                        down.')
                 plotting()
             
-            log(data_log, time_log, volt_log, curr_log, power_log, v_i, c_i_1)
+            log(data_log, time_log, volt_log, curr_log, power_log, v_i, c_i)
             time.sleep(update_time)
             
                 
