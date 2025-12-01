@@ -147,11 +147,13 @@ try:
             
             P_ON = 0
             P_OFF = 1
+            power_off()
             last_time_point = time.time()
             log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
             time.sleep(update_time)
             print('-----------------------------------------------------------')
             print(f'---------- Cycle {cyc_counter} complete. -----------------')
+            print(f'----- Cycles remaining: {numb_cycles-(1+cyc_counter)} ----')
             print('-----------------------------------------------------------')
             
         elif P_OFF == 1 and cycle_duration>cycle_off_duration:
@@ -159,9 +161,11 @@ try:
             
             P_ON = 1
             P_OFF = 0
+            power_on(4, 7)
             cyc_counter +=1
             last_time_point = time.time()
-            log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
+            v_i, c_i = measure()
+            log(data_log, time_log, volt_log, curr_log, power_log, v_i, c_i)
             time.sleep(update_time)
         
         elif P_OFF == 1 and cycle_duration<cycle_off_duration:
