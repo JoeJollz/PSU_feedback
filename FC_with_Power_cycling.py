@@ -94,9 +94,9 @@ last_time_point = start_time
 
 P_ON = 1
 P_OFF = 0
-cycle_on_duration = 0.3*60 # 5 minutes power down. 
-cycle_off_duration = 0.3*60 # 5minutes power off
-numb_cycles = 5 # number of cycles.
+cycle_on_duration = 5*60 # 5 minutes power down. 
+cycle_off_duration = 5*60 # 5minutes power off
+numb_cycles = 21 # n-1. number of cycles.
 cyc_counter = 1
 update_time = 0.2
 targ_power = 12# target power for each of the cylcles (W).
@@ -150,6 +150,9 @@ try:
             last_time_point = time.time()
             log(data_log, time_log, volt_log, curr_log, power_log, 0, 0)
             time.sleep(update_time)
+            print('-----------------------------------------------------------')
+            print(f'---------- Cycle {cyc_counter} complete. -----------------')
+            print('-----------------------------------------------------------')
             
         elif P_OFF == 1 and cycle_duration>cycle_off_duration:
             # it is OFF and needs to swtich ONN
