@@ -30,7 +30,7 @@ def power_on(V, I):
     psu.write(b"OUTP ON\n") #turn ON the output
     time.sleep(1)
     
-def power_update(P, volt_i, curr_i):
+def current_update(targ_power, volt_i, curr_i):
     curr_i_1 = targ_power/volt_i
     command = f"CURR {curr_i_1}\n".encode()
     psu.write(command)
@@ -77,11 +77,11 @@ def plotting():
     ax2.tick_params(axis="y", labelcolor="r")
     
     # Show plot
-    plt.title(f"IV vs Time")
+    plt.title(f"IV vs Time. Power={targ_power}W")
     plt.show()
     
     plt.plot(time_log, power_log)
-    plt.title(f'Power vs Time')
+    plt.title(f'Power vs Time. Power={targ_power}W')
     plt.xlabel('Time (s)')
     plt.ylabel('Power (W)')
     plt.show()
@@ -99,8 +99,8 @@ cycle_off_duration = 5*60 # 5minutes power off
 numb_cycles = 500 # number of cycles.
 cyc_counter = 1
 update_time = 0.2
-targ_power = # target power for each of the cylcles (W).
-v_min = # minimum working voltage.
+targ_power = 12# target power for each of the cylcles (W).
+v_min = 0.5 # minimum working voltage.
 c_max = 20 # A safety maximum current 
 
 power_on(4,7)
@@ -121,7 +121,7 @@ try:
             v_i, c_i = measure()
             
             if v_i > v_min: # voltage is suitably high, hence the current 
-                c_i_1 = power_update(P, v_i, c_i)
+                c_i_1 = current_update(targ_power, v_i, c_i)
             else: # voltage is too low, hence stopping the current reaching too high. 
                 power_off()
                 print(f'Voltage exceeded the minimum working voltage: {v_min}V, \
@@ -130,7 +130,7 @@ try:
 
             if c_i >c_max or c_i_1 > c_max:
                 power_off()
-                print(f'Current has exceeded the maximum current and hence shut\
+                print(f'Current has exceeded the maximum current ({c_max}A) and hence shut\
                        down.')
                 plotting()
             
@@ -172,11 +172,6 @@ try:
             
             break
         
-            
-                
-            
-        
-        
         
 except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl + C
     psu.write(b"OUTP OFF\n")
@@ -186,4 +181,10 @@ except KeyboardInterrupt: # TO INTERUPT - PRESS Ctrl + C
     
     
     plotting()
+    
+file_path = r"C:\Users\jrjol\OneDrive - University of Cambridge\Documents\Cambridge PhD\Andy Paper\power and iv data\IVPdata_20cycles.txt"
+
+with open(file_path, 'w') as f:
+    for item in data_log:
+        f.write(str(item) + '\n')
     
