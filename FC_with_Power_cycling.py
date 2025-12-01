@@ -94,9 +94,9 @@ last_time_point = start_time
 
 P_ON = 1
 P_OFF = 0
-cycle_on_duration = 5*60 # 5 minutes power down. 
-cycle_off_duration = 5*60 # 5minutes power off
-numb_cycles = 500 # number of cycles.
+cycle_on_duration = 0.3*60 # 5 minutes power down. 
+cycle_off_duration = 0.3*60 # 5minutes power off
+numb_cycles = 5 # number of cycles.
 cyc_counter = 1
 update_time = 0.2
 targ_power = 12# target power for each of the cylcles (W).
@@ -119,6 +119,7 @@ try:
         
         if P_ON == 1 and cycle_duration<cycle_on_duration:
             v_i, c_i = measure()
+            print('volts measured: ', v_i, 'current measured: ', c_i)
             
             if v_i > v_min: # voltage is suitably high, hence the current 
                 c_i_1 = current_update(targ_power, v_i, c_i)
