@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 
 class PSU:
-    def __init(self, port, targ_power, name="PSU"):
+    def __init__(self, port, targ_power, name="PSU"):
         self.name = name
         self.serial = serial.Serial(port, baudrate = 9600, timeout = 1)
         self.targ_power = targ_power
@@ -87,58 +87,62 @@ def plotting(psu_list):
         plt.ylabel("Power (W)")
         plt.show()
 
-
 def main():
     targ_power = 8.0
     volt_mini = 0.5
     MAX_CURRENT = 20
-    SLEEP_TIME = 0.2
+    SLEEP_TIME = 0.1
     
-    psu1 = PSU("COM8", targ_power, name = "PSU1")
-    psu2 = PSU("COM9", targ_power, name = "PSU2")
+    # Initialize PSUs
+    psu1 = PSU("COM3", targ_power, name="PSU Reformer")
+    psu2 = PSU("COM4", targ_power, name="PSU WGS")
     psus = [psu1, psu2]
     
     print("\n--- Dual PSU Control ---")
-    print("Press 1 to toggle PUS1 ON or OFF")
-    print("Press 2 to toggle PSU2 ON or OFF")
+    print("Press 1 to toggle PSU1 ON/OFF")
+    print("Press 2 to toggle PSU2 ON/OFF")
     print("Press q to quit program safely.\n")
+    input("Press Enter to start the PSU loop...")
     
-    
-    try: 
+    try:
         while True:
-            
+            # --- Check user input ---
             if msvcrt.kbhit():
                 key = msvcrt.getch().decode("utf-8").lower()
                 if key == "1":
                     psu1.output(not psu1.output_on)
                 elif key == "2":
-                    psu2.output(not psu2.ouput_on)
+                    psu2.output(not psu2.output_on)
                 elif key == "q":
-                    print("\nQuitting program.... ")
+                    print("\nQuitting program....")
                     break
             
+            # --- Loop through PSUs ---
             for psu in psus:
                 if not psu.output_on:
                     continue
                 
                 volt, curr = psu.measure()
-                elapsed = psu.updae_logs(volt, curr)
+                elapsed = psu.update_logs(volt, curr)
                 power = volt * curr
-                print(f"{psu.name} | Time: {elapsed:5.2f}s | V={volt:6.3f}V | I={curr:6.3f}A | P={power:6.3f}W")
                 
+                print(f"{psu.name} | Time: {elapsed:5.2f}s | V={volt:6.3f}V | "
+                      f"I={curr:6.3f}A | P={power:6.3f}W")
+                
+                # Adjust current to maintain target power
                 if volt > volt_mini:
                     new_curr = psu.targ_power / volt
-                    if new_curr < MAX_CURRENT:
+                    if new_curr <= MAX_CURRENT:
                         psu.set_current(new_curr)
                     else:
-                        print(f"{psu.name}: New currentt: {new_curr}A exceeded {MAX_CURRENT}A. Output OFF for safety.")
+                        print(f"{psu.name}: New current {new_curr:.2f}A exceeds {MAX_CURRENT}A. Output OFF for safety.")
                         psu.output(False)
-                    
                 else:
-                    print(f"{psu.name}: Low voltage (<{volt_mini}V). Output OFF for safety.")
+                    print(f"{psu.name}: Voltage below {volt_mini}V. Output OFF for safety.")
                     psu.output(False)
             
             time.sleep(SLEEP_TIME)
+    
     except KeyboardInterrupt:
         print("\nKeyboard interrupt detected. Shutting down.")
     
@@ -147,6 +151,8 @@ def main():
             psu.close()
         plotting(psus)
         print("Program ended safely")
+
+
         
                     
                 

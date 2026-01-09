@@ -33,7 +33,7 @@ import time
 import serial
 import matplotlib.pyplot as plt
  
-psu = serial.Serial("COM8", baudrate=9600, timeout=1)
+psu = serial.Serial("COM3", baudrate=9600, timeout=1)
 
 data_log = []
 time_log = []
