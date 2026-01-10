@@ -21,6 +21,8 @@ def on_key(event):
 keyboard.on_press(on_key)
 
 
+
+
 try:
     while True:
         with console_lock:    
