@@ -16,6 +16,9 @@ import time
 import keyboard
 import serial
 import matplotlib.pyplot as plt
+import serial.tools.list_ports
+import csv
+import os
 
 user_key = None
 console_lock = threading.Lock()
@@ -63,10 +66,22 @@ def plotting(log, psu_num):
     plt.ylabel('Power (W)')
     plt.show()
     
+def save_log_to_csv(log, filename):
+    filepath = os.path.join(os.getcwd(), filename)
     
+    with open(filepath, mode='w', newline='') as file:
+        writer = csv.writer(file)
         
+        writer.writerow(log.keys())
+        
+        for row in zip(*log.values()):
+            writer.writerow(row)
+        
+    print(f"Data log for {filename} saved.")
         
 def PSU1_ON():
+    if not psu1.is_open:
+        psu1.open()
     psu1.write(b"VOLT 15\n") # set voltage to 0.1V
     psu1.write(b"CURR 7\n") # set current limit to 10A
     psu1.write(b"OUTP ON\n") #turn ON the output
@@ -76,15 +91,21 @@ def PSU1_OFF():
     psu1.write(b"CURR 0\n")
     psu1.write(b"VOLT 0\n")
     psu1.write(b"OUTP OFF\n")
-    psu1.close()
     
 
 def PSU1_measure():
     psu1.write(b"MEAS:VOLT?\n")
-    volt1_i = float(psu1.readline().decode().strip())
+    try:
+        volt1_i = float(psu1.readline().decode().strip())
+    except ValueError:
+        volt1_i = float('nan')
     
     psu1.write(b"MEAS:CURR?\n")
-    curr1_i = float(psu1.readline().decode().strip())
+    try:
+        curr1_i = float(psu1.readline().decode().strip())
+    except ValueError:
+        curr1_i = float('nan')
+        
     return volt1_i, curr1_i
 
 def PSU1_update(TP, volt1_i, curr1_i, volt_mini, current_max):
@@ -97,16 +118,17 @@ def PSU1_update(TP, volt1_i, curr1_i, volt_mini, current_max):
         psu1.write(b"CURR 0\n")
         psu1.write(b"VOLT 0\n")
         psu1.write(b"OUTP OFF\n")
-        psu1.close()
         print(f'Automatic shut down. Voltage <{volt_mini}V, protected current becoming too large.')
         plotting(data_log_psu1, 1)
     
-    if curr1_i>current_max: # if current exceeds the maximum safety operating current - close off. 
+    if curr1_i_1>current_max: # if current exceeds the maximum safety operating current - close off. 
         psu1.write(b"OUTP OFF\n")
         print(f'Exceeded maximum current of {current_max}A')
         plotting(data_log_psu1, 1)
         
 def PSU2_ON():
+    if not psu2.is_open:
+        psu2.open()
     psu2.write(b"VOLT 15\n") # set voltage to 0.1V
     psu2.write(b"CURR 7\n") # set current limit to 10A
     psu2.write(b"OUTP ON\n") #turn ON the output
@@ -116,15 +138,20 @@ def PSU2_OFF():
     psu2.write(b"CURR 0\n")
     psu2.write(b"VOLT 0\n")
     psu2.write(b"OUTP OFF\n")
-    psu2.close()
     
 
 def PSU2_measure():
     psu2.write(b"MEAS:VOLT?\n")
-    volt2_i = float(psu2.readline().decode().strip())
+    try:
+        volt2_i = float(psu2.readline().decode().strip())
+    except ValueError:
+        volt2_i = float('nan')
     
     psu2.write(b"MEAS:CURR?\n")
-    curr2_i = float(psu2.readline().decode().strip())
+    try:
+        curr2_i = float(psu2.readline().decode().strip())
+    except ValueError:
+        curr2_i = float('nan')
     return volt2_i, curr2_i
 
 def PSU2_update(TP, volt2_i, curr2_i, volt_mini, current_max):
@@ -137,11 +164,10 @@ def PSU2_update(TP, volt2_i, curr2_i, volt_mini, current_max):
         psu2.write(b"CURR 0\n")
         psu2.write(b"VOLT 0\n")
         psu2.write(b"OUTP OFF\n")
-        psu2.close()
         print(f'Automatic shut down. Voltage <{volt_mini}V, protected current becoming too large.')
         plotting(data_log_psu2, 2)
     
-    if curr2_i>current_max: # if current exceeds the maximum safety operating current - close off. 
+    if curr2_i_1>current_max: # if current exceeds the maximum safety operating current - close off. 
         psu2.write(b"OUTP OFF\n")
         print(f'Exceeded maximum current of {current_max}A')
         plotting(data_log_psu2, 2)
@@ -218,13 +244,6 @@ try:
                 print('------------------------------------------------------')
                 print(f'PSU2 OFF. Time={t}s. Current=0A. Volts=0V. Power=0W')
                 
-                
-            
-            
-            
-            
-            
-            
             
             # ============== PSU TOGGLE ON/OFF STATUS CODE ====================
             if user_key:
@@ -250,15 +269,17 @@ try:
                     PSU2_OFF()
                     psu_2 = 0
             
-            user_key = 0
+            user_key = None
                 
     
-        time.sleep(3)
+        time.sleep(SLEEP_TIME)
 except KeyboardInterrupt:
     with console_lock:    
         print("\nStopped via keyboard interrupt")
         PSUs_OFF()
         plotting(data_log_psu1, 1)
         plotting(data_log_psu2, 2)
+        save_log_to_csv(data_log_psu1, "PSU1_data.csv")
+        save_log_to_csv(data_log_psu2, "PSU2_data.csv")
 finally:
     keyboard.unhook_all()
