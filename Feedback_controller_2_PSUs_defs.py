@@ -8,10 +8,7 @@ This code is for dual PSU control using just definitions. No classes... yet.
 This is a fall back, is the Classes method fails, this code can be used to get 
 the data during In-Hours periods.
 
-TODO: continue with the main loop, 
-      Wipe the user_key each iteration so the PSUs are not rapidly turned on and off. 
-      Add print statements which display the on/off status of both PSUs 1 and 2, followed with their 
-      values for current, voltage and power. 
+TODO: 
 """
 
 import threading
@@ -197,17 +194,35 @@ try:
             if psu_1 ==1: #PSU 1 is on, and need power controlling
                 v1_i, c1_i = PSU1_measure()
                 PSU1_update(TP, v1_i, c1_i, volt_mini, current_max)
-                ## need to add a data logger
-            elif psu_1 == 0: # empty log
-                ## need to add a data logger, empty.
                 log_data(data_log_psu1, t, c1_i, v1_i, (c1_i*v1_i))
+                print('------------------------------------------------------')
+                print(f'PSU1 ON. Time={t}s. Current={c1_i}A. Volts={v1_i}V. Power={(c1_i*v1_i)}W')
+                
+                
+            elif psu_1 == 0: # PSU1 off, empty log
+                log_data(data_log_psu1, t, 0, 0, 0)
+                print('------------------------------------------------------')
+                print(f'PSU1 OFF. Time={t}s. Current=0A. Volts=0V. Power=0W')
+                
             
             
             if psu_2 == 1: #PSU 2 is on, and also needs power control. 
                 v2_i, c2_i = PSU2_measure()
                 PSU2_update(TP, v2_i, c2_i, volt_mini, current_max)
-            elif psu_2 == 0: #empty log.
                 log_data(data_log_psu2, t, c2_i, v2_i, (c2_i*v2_i))
+                print('------------------------------------------------------')
+                print(f'PSU2 ON. Time={t}s. Current={c2_i}A. Volts={v2_i}V. Power={(c2_i*v2_i)}W')
+                
+            elif psu_2 == 0: # PSU2 off, empty log.
+                log_data(data_log_psu2, t, 0, 0, 0)
+                print('------------------------------------------------------')
+                print(f'PSU2 OFF. Time={t}s. Current=0A. Volts=0V. Power=0W')
+                
+                
+            
+            
+            
+            
             
             
             
@@ -234,14 +249,15 @@ try:
                     print('Powering off PSU2')
                     PSU2_OFF()
                     psu_2 = 0
+            
+            user_key = 0
                 
-            
-            
+    
         time.sleep(3)
 except KeyboardInterrupt:
     with console_lock:    
         print("\nStopped via keyboard interrupt")
-        PSU1_OFF()
+        PSUs_OFF()
         plotting(data_log_psu1, 1)
         plotting(data_log_psu2, 2)
 finally:
